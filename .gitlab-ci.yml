@@ -1,0 +1,51 @@
+stages:
+- test
+- build
+
+variables:
+  GOPROXY: https://goproxy.cn,direct
+  GOPRIVATE: git.supremind.info
+  DOCKER_HOST: tcp://localhost:2375
+  DOCKER_REG: $CI_REGISTRY_IMAGE
+
+before_script:
+- docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY || true
+
+test csi:
+  stage: test
+  tags:
+    - dind
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - platform/csi/**/*
+  image: reg.supremind.info/hub/atom/builder/golang-tester:latest
+  cache:
+    policy: pull-push
+    key: go-path
+    paths:
+      - /go/
+  script:
+    - echo "done" # TODO: test need privilege
+
+build csi:
+  stage: build
+  tags:
+    - dind
+  only:
+    refs:
+      - release
+      - dev
+  image: reg.supremind.info/products/ava/ava/docker-runner:latest
+  services:
+    - docker:18.09.7-dind
+  variables: &dindVars
+    DOCKER_DRIVER: overlay2
+  cache:
+    policy: pull-push
+    key: dind-go
+    paths:
+      - /var/lib/docker
+  script:
+    - echo "done" # TODO: build need bolt-mount dep

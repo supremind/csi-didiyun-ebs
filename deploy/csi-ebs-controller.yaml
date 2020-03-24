@@ -1,0 +1,80 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: csi-ebs-controller
+  labels:
+    app: csi-ebs-controller
+spec:
+  selector:
+    app: csi-ebs-controller
+  ports:
+    - name: dummy
+      port: 12345
+
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: csi-ebs-controller
+spec:
+  serviceName: "csi-ebs-controller"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: csi-ebs-controller
+  template:
+    metadata:
+      labels:
+        app: csi-ebs-controller
+    spec:
+      serviceAccountName: csi-controller
+      containers:
+        - name: csi-attacher
+          image: quay.azk8s.cn/k8scsi/csi-attacher:v1.2.0
+          args:
+            - --v=5
+            - --csi-address=/csi/csi.sock
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+
+        - name: csi-provisioner
+          image: quay.azk8s.cn/k8scsi/csi-provisioner:v1.2.0
+          args:
+            - -v=5
+            - --csi-address=/csi/csi.sock
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+
+        - name: plugin
+          image: reg.supremind.info/hub/atom/test/ebsplugin:latest
+          imagePullPolicy: Always
+          args:
+            - "--v=5"
+            - "--endpoint=$(CSI_ENDPOINT)"
+            - "--nodeid=$(KUBE_NODE_NAME)"
+            - "--token=$(API_TOKEN)"
+          env:
+            - name: CSI_ENDPOINT
+              value: unix:///csi/csi.sock
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+            - name: API_TOKEN
+              value: dummy
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 9898
+              name: healthz
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+
+      volumes:
+        - emptyDir: {}
+          name: socket-dir
