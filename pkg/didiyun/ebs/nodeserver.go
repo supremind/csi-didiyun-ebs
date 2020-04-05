@@ -1,6 +1,10 @@
 package ebs
 
 import (
+	"os"
+	"strconv"
+	"sync"
+
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"golang.org/x/net/context"
@@ -8,6 +12,12 @@ import (
 	"google.golang.org/grpc/status"
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/util/mount"
+)
+
+const (
+	// might be overwritten by environment variable `MAX_VOLUMES_PER_NODE`
+	defaultMaxVolumesPerNode = 10
+	maxVolumePerNodeEnvKey   = "MAX_VOLUMES_PER_NODE"
 )
 
 type nodeServer struct {
@@ -167,8 +177,24 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 }
 
 func (ns *nodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
+	var maxVolumesPerNode int64
+	var once sync.Once
+	once.Do(func() {
+		val, e := strconv.ParseInt(os.Getenv(maxVolumePerNodeEnvKey), 10, 64)
+		if e != nil {
+			klog.V(2).Infof("parse env var %s failed: %v", maxVolumePerNodeEnvKey, e)
+			return
+		}
+		if val <= 0 {
+			klog.V(2).Infof("invalid env var %s value: %d", maxVolumePerNodeEnvKey, val)
+			return
+		}
+		maxVolumesPerNode = val
+	})
+
 	return &csi.NodeGetInfoResponse{
-		NodeId: ns.nodeID,
+		NodeId:            ns.nodeID,
+		MaxVolumesPerNode: maxVolumesPerNode,
 		AccessibleTopology: &csi.Topology{
 			Segments: map[string]string{
 				topologyZoneKey: ns.zone,
