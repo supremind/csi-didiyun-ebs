@@ -10,7 +10,6 @@ COPY . ./
 RUN make build-ebsplugin
 
 FROM reg.supremind.info/hub/atom/builder/alpine-base:latest
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories && \
-    apk update && apk add --no-cache util-linux e2fsprogs
+RUN apk add --no-cache util-linux e2fsprogs
 COPY --from=builder /workspace/bin/ebsplugin /ebsplugin
 ENTRYPOINT ["/ebsplugin"]
