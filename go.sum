@@ -13,6 +13,8 @@ git.supremind.info/products/atom/didiyun-client v0.0.0-20200405074620-8618d6f20a
 git.supremind.info/products/atom/didiyun-client v0.0.0-20200405074620-8618d6f20aeb/go.mod h1:mw04fYS6riJ4qiYq5gi8AJ0KDRuDrpl5tB9p7e4pDoQ=
 git.supremind.info/products/atom/proto/go/api v1.0.11 h1:PcIWq+LF5rwsMMUCf7ssIbkj/YeGA9aL8BufL+huXdA=
 git.supremind.info/products/atom/proto/go/api v1.0.11/go.mod h1:I6Oeru7S2mQduN2p7zCGCMeUiTzAOUPRXRZ4YXYq234=
+git.supremind.info/products/atom/proto/go/api v1.0.12 h1:bANavyWGkmkPSJIra2MCqMi+LGeEQxKl8KctRU2bxZM=
+git.supremind.info/products/atom/proto/go/api v1.0.12/go.mod h1:I6Oeru7S2mQduN2p7zCGCMeUiTzAOUPRXRZ4YXYq234=
 git.supremind.info/products/ava/bolt-mount.git v1.0.2-0.20190709082429-8b77ea3a1ed9 h1:fdrsIQj7ktclPGT5dh1miV5HdZGMQfUcW8Z1ZpYTgkQ=
 git.supremind.info/products/ava/bolt-mount.git v1.0.2-0.20190709082429-8b77ea3a1ed9/go.mod h1:k3nAJ5rqiXZvjA/bQUka6MMHpeBkE4ffPtpvewvOtNw=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=

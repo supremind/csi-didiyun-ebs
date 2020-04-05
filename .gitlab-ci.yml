@@ -35,9 +35,8 @@ build csi:
     - dind
   only:
     refs:
-      - release
-      - dev
-  image: reg.supremind.info/products/ava/ava/docker-runner:latest
+      - master
+  image: reg.supremind.info/hub/atom/builder/docker-runner:latest
   services:
     - docker:18.09.7-dind
   variables: &dindVars
@@ -48,4 +47,5 @@ build csi:
     paths:
       - /var/lib/docker
   script:
-    - echo "done" # TODO: build need bolt-mount dep
+      - make docker-push-ebsplugin
+      - make docker-push-datasetplugin
