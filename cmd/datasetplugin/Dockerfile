@@ -9,10 +9,9 @@ RUN --mount=type=secret,id=netrc,dst=/root/.netrc go mod download
 COPY . ./
 RUN make build-datasetplugin
 
-FROM 8tn49c6n.mirror.aliyuncs.com/library/ubuntu:18.04
-RUN sed -i s/archive.ubuntu.com/mirrors.163.com/g /etc/apt/sources.list && \
-    sed -i s/security.ubuntu.com/mirrors.163.com/g /etc/apt/sources.list && \
-    apt update && apt install -y fuse
+FROM reg.supremind.info/hub/atom/builder/alpine-base:latest
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories && \
+    apk update && apk add --no-cache fuse
 ARG BOLT_MOUNT_VERSION=dev
 ADD http://pr6c01xnk.bkt.clouddn.com/release/bolt-mount-${BOLT_MOUNT_VERSION}.linux-amd64 /usr/local/bin/bolt-mount
 ADD https://github.com/krallin/tini/releases/download/v0.18.0/tini /usr/local/bin/tini
