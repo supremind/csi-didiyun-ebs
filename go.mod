@@ -2,8 +2,6 @@ module git.supremind.info/products/atom/csi-plugins
 
 go 1.14
 
-replace git.supremind.info/products/atom/bolt-mount v1.0.2 => ../bolt-mount
-
 require (
 	bazil.org/fuse v0.0.0-20200117225306-7b5117fecadc
 	git.supremind.info/products/atom/bolt-mount v1.0.2
