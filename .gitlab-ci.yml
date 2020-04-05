@@ -48,6 +48,6 @@ build csi:
     paths:
       - /var/lib/docker
   script:
-      - REGISTRY_NAME=${CI_REGISTRY_IMAGE}
+      - export REGISTRY_NAME=${CI_REGISTRY_IMAGE}
       - make docker-push-ebsplugin
       - make docker-push-datasetplugin
