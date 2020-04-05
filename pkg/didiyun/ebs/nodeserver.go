@@ -1,7 +1,10 @@
 package ebs
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -176,6 +179,10 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 		return nil, status.Error(codes.Internal, e.Error())
 	}
 	if !notmounted {
+		// log of volume unattached before unmount for troubleshooting
+		if e := checkDevice(targetPath); e != nil {
+			klog.Errorf("check device failed for path %s of volume %s before unmount: %s", targetPath, req.VolumeId, e)
+		}
 		if e := ns.mounter.Unmount(targetPath); e != nil {
 			return nil, status.Error(codes.Internal, e.Error())
 		}
@@ -214,4 +221,29 @@ func (ns *nodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetC
 
 func (ns *nodeServer) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "")
+}
+
+func checkDevice(mountPoint string) error {
+	out, e := exec.Command("findmnt", "-J", mountPoint).CombinedOutput()
+	if e != nil {
+		return e
+	}
+	var fs struct {
+		Filesystems []struct {
+			Target  string `json:"target"`
+			Source  string `json:"source"`
+			Fstype  string `json:"fstype"`
+			Options string `json:"options"`
+		} `json:"filesystems"`
+	}
+	if e := json.Unmarshal(out, &fs); e != nil {
+		return e
+	}
+	if len(fs.Filesystems) != 1 {
+		return fmt.Errorf("invalid mount source number: %d", len(fs.Filesystems))
+	}
+	if _, e := os.Stat(fs.Filesystems[0].Source); e != nil {
+		return e
+	}
+	return nil
 }

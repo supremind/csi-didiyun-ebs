@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	didiyunClient "git.supremind.info/products/atom/didiyun-client/pkg"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"k8s.io/klog"
@@ -32,7 +33,7 @@ type DriverConfig struct {
 }
 
 func NewDriver(cfg *DriverConfig) (*ebs, error) {
-	ebsClient, e := newEbsClient(cfg.Token, cfg.Timeout)
+	cli, e := didiyunClient.New(&didiyunClient.Config{Token: cfg.Token, Timeout: cfg.Timeout})
 	if e != nil {
 		return nil, e
 	}
@@ -45,7 +46,7 @@ func NewDriver(cfg *DriverConfig) (*ebs, error) {
 	return &ebs{
 		idServer:         NewIdentityServer(driver),
 		nodeServer:       NewNodeServer(driver, cfg.NodeID, cfg.ZoneID),
-		controllerServer: NewControllerServer(driver, ebsClient),
+		controllerServer: NewControllerServer(driver, cli.Ebs()),
 		endpoint:         cfg.Endpoint,
 	}, nil
 }

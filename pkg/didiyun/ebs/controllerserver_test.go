@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	didiyunClient "git.supremind.info/products/atom/didiyun-client/pkg"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"github.com/stretchr/testify/assert"
@@ -11,8 +12,9 @@ import (
 )
 
 func TestControllerServer(t *testing.T) {
+	c, _ := didiyunClient.NewMock()
 	nodeID := "test-node"
-	ebsClient := newMockEbsClient()
+	ebsClient := c.Ebs()
 	driver := csicommon.NewCSIDriver(driverName, csiVersion, nodeID)
 	require.NotNil(t, driver)
 	svr := NewControllerServer(driver, ebsClient)
