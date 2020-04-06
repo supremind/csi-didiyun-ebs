@@ -1,6 +1,7 @@
 package ebs
 
 import (
+	didiyunClient "git.supremind.info/products/atom/didiyun-client/pkg"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"golang.org/x/net/context"
@@ -18,10 +19,10 @@ const (
 
 type controllerServer struct {
 	*csicommon.DefaultControllerServer
-	ebsCli ebsClientInterface
+	ebsCli didiyunClient.EbsClient
 }
 
-func NewControllerServer(d *csicommon.CSIDriver, cli ebsClientInterface) *controllerServer {
+func NewControllerServer(d *csicommon.CSIDriver, cli didiyunClient.EbsClient) *controllerServer {
 	return &controllerServer{
 		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
 		ebsCli:                  cli,
