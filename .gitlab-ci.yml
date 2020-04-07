@@ -37,6 +37,7 @@ build csi:
   only:
     refs:
       - master
+      - release
   image: reg.supremind.info/hub/atom/builder/docker-runner:latest
   services:
     - docker:18.09.7-dind
