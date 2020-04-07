@@ -18,6 +18,7 @@ docker-build-%:
 	DOCKER_BUILDKIT=1 docker build \
 	-t $*:latest \
 	-f ./cmd/$*/Dockerfile \
+	--network host \
 	--secret id=netrc,src=$(NETRC_PATH) \
 	--build-arg BOLT_MOUNT_VERSION=$(BOLT_MOUNT_VERSION) .
 
