@@ -1,6 +1,8 @@
 package ebs
 
 import (
+	"errors"
+
 	didiyunClient "git.supremind.info/products/atom/didiyun-client/pkg"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
@@ -68,6 +70,10 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 
 func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
 	if e := cs.ebsCli.Delete(ctx, req.GetVolumeId()); e != nil {
+		if errors.Is(e, didiyunClient.NotFound) {
+			klog.V(3).Infof("couldn't delete not found volume %s", req.GetVolumeId())
+			return &csi.DeleteVolumeResponse{}, nil
+		}
 		return nil, status.Error(codes.Internal, e.Error())
 	}
 

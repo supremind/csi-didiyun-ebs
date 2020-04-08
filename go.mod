@@ -6,7 +6,7 @@ require (
 	bazil.org/fuse v0.0.0-20200117225306-7b5117fecadc
 	git.supremind.info/products/atom/bolt-mount v1.0.2
 	git.supremind.info/products/atom/com v1.2.0
-	git.supremind.info/products/atom/didiyun-client v0.0.0-20200405074620-8618d6f20aeb
+	git.supremind.info/products/atom/didiyun-client v0.0.0-20200408020409-5b11765a5ef0
 	git.supremind.info/products/atom/proto/go/api v1.0.12
 	github.com/container-storage-interface/spec v1.1.0
 	github.com/gogo/protobuf v1.3.1

@@ -179,9 +179,12 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 		return nil, status.Error(codes.Internal, e.Error())
 	}
 	if !notmounted {
-		// log of volume unattached before unmount for troubleshooting
-		if e := checkDevice(targetPath); e != nil {
-			klog.Errorf("check device failed for path %s of volume %s before unmount: %s", targetPath, req.VolumeId, e)
+		// check volume unattached before unmount for troubleshooting
+		if os.Getenv("ENABLE_CHECK_DEVICE") != "" && os.Getenv("ENABLE_CHECK_DEVICE") != "0" {
+			if e := checkDevice(targetPath); e != nil {
+				klog.Errorf("check device failed for path %s of volume %s before umount: %s", targetPath, req.VolumeId, e)
+				return nil, status.Error(codes.Internal, "device not found before umount")
+			}
 		}
 		if e := ns.mounter.Unmount(targetPath); e != nil {
 			return nil, status.Error(codes.Internal, e.Error())
