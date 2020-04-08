@@ -71,7 +71,7 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
 	if e := cs.ebsCli.Delete(ctx, req.GetVolumeId()); e != nil {
 		if errors.Is(e, didiyunClient.NotFound) {
-			klog.V(3).Infof("failed to delete not found volume %s", req.GetVolumeId())
+			klog.V(3).Infof("couldn't delete not found volume %s", req.GetVolumeId())
 		} else {
 			return nil, status.Error(codes.Internal, e.Error())
 		}
