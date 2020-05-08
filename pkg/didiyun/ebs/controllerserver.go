@@ -113,23 +113,10 @@ func (cs *controllerServer) ValidateVolumeCapabilities(ctx context.Context, req 
 }
 
 func (cs *controllerServer) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
-	device, e := cs.ebsCli.Attach(ctx, req.GetVolumeId(), req.GetNodeId())
-	if e != nil {
-		return nil, status.Error(codes.Internal, e.Error())
-	}
-
-	klog.V(4).Infof("volume attached: %s", req.GetVolumeId())
-	return &csi.ControllerPublishVolumeResponse{
-		PublishContext: map[string]string{keyDeviceName: device},
-	}, nil
+	return &csi.ControllerPublishVolumeResponse{}, nil
 }
 
 func (cs *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
-	if e := cs.ebsCli.Detach(ctx, req.GetVolumeId()); e != nil {
-		return nil, status.Error(codes.Internal, e.Error())
-	}
-
-	klog.V(4).Infof("volume detached: %s", req.GetVolumeId())
 	return &csi.ControllerUnpublishVolumeResponse{}, nil
 }
 
