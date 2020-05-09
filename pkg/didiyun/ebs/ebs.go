@@ -45,7 +45,7 @@ func NewDriver(cfg *DriverConfig) (*ebs, error) {
 	driver.AddVolumeCapabilityAccessModes([]csi.VolumeCapability_AccessMode_Mode{csi.VolumeCapability_AccessMode_SINGLE_NODE_WRITER})
 	return &ebs{
 		idServer:         NewIdentityServer(driver),
-		nodeServer:       NewNodeServer(driver, cfg.NodeID, cfg.ZoneID),
+		nodeServer:       NewNodeServer(driver, cfg.NodeID, cfg.ZoneID, cli.Ebs()),
 		controllerServer: NewControllerServer(driver, cli.Ebs()),
 		endpoint:         cfg.Endpoint,
 	}, nil

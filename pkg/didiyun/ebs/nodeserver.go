@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strconv"
 
+	didiyunClient "git.supremind.info/products/atom/didiyun-client/pkg"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"golang.org/x/net/context"
@@ -28,9 +29,10 @@ type nodeServer struct {
 	maxVolumesPerNode int64
 	*csicommon.DefaultNodeServer
 	mounter mount.Interface
+	ebsCli  didiyunClient.EbsClient
 }
 
-func NewNodeServer(d *csicommon.CSIDriver, nodeID, zone string) *nodeServer {
+func NewNodeServer(d *csicommon.CSIDriver, nodeID, zone string, cli didiyunClient.EbsClient) *nodeServer {
 	var maxVolumesPerNode int64 = defaultMaxVolumesPerNode
 	if val, e := strconv.ParseInt(os.Getenv(maxVolumePerNodeEnvKey), 10, 64); e != nil {
 		klog.V(2).Infof("parse env var %s failed: %v", maxVolumePerNodeEnvKey, e)
@@ -46,6 +48,7 @@ func NewNodeServer(d *csicommon.CSIDriver, nodeID, zone string) *nodeServer {
 		maxVolumesPerNode: maxVolumesPerNode,
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d),
 		mounter:           mount.New(""),
+		ebsCli:            cli,
 	}
 }
 
@@ -145,9 +148,10 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		return nil, status.Error(codes.Unimplemented, "")
 	}
 
-	device := req.GetPublishContext()[keyDeviceName]
-	if device == "" {
-		return nil, status.Error(codes.Internal, "failed to get device name from context")
+	// attach before mount to global
+	device, e := ns.ebsCli.Attach(ctx, req.GetVolumeId(), ns.nodeID)
+	if e != nil {
+		return nil, status.Error(codes.Internal, e.Error())
 	}
 
 	mnt := req.VolumeCapability.GetMount()
@@ -191,6 +195,11 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 		}
 	} else {
 		klog.V(2).Infof("volume %s is already umounted from global path %s", req.VolumeId, targetPath)
+	}
+
+	// detach after unmount from global
+	if e := ns.ebsCli.Detach(ctx, req.GetVolumeId()); e != nil {
+		return nil, status.Error(codes.Internal, e.Error())
 	}
 
 	return &csi.NodeUnstageVolumeResponse{}, nil

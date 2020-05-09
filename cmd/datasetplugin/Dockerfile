@@ -12,7 +12,7 @@ RUN make build-datasetplugin
 FROM reg.supremind.info/hub/atom/builder/alpine-base:latest
 RUN apk add --no-cache fuse tini
 ARG BOLT_MOUNT_VERSION=dev
-ADD http://pr6c01xnk.bkt.clouddn.com/release/bolt-mount-${BOLT_MOUNT_VERSION}.linux-amd64 /usr/local/bin/bolt-mount
+ADD https://atom-dev.s3.didiyunapi.com/release/bolt-mount-${BOLT_MOUNT_VERSION}.linux-amd64 /usr/local/bin/bolt-mount
 RUN chmod +x /usr/local/bin/bolt-mount
 COPY --from=builder /workspace/bin/datasetplugin /datasetplugin
 ENTRYPOINT ["tini", "--", "/datasetplugin"]

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	didiyunClient "git.supremind.info/products/atom/didiyun-client/pkg"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"github.com/stretchr/testify/assert"
@@ -15,6 +16,7 @@ import (
 )
 
 func TestNodeServer(t *testing.T) {
+	c, _ := didiyunClient.NewMock()
 	nodeID := "test-node"
 	driver := csicommon.NewCSIDriver(driverName, csiVersion, nodeID)
 	require.NotNil(t, driver)
@@ -24,9 +26,12 @@ func TestNodeServer(t *testing.T) {
 		zone:              "zone1",
 		mounter:           &mount.FakeMounter{},
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(driver),
+		ebsCli:            c.Ebs(),
 	}
-
 	ctx := context.Background()
+	volID, e := svr.ebsCli.Create(ctx, "", "zone1", "test-vol", "", 1000000)
+	require.NoError(t, e)
+
 	tmp, e := ioutil.TempDir("", "ebs_nodeserver_test-")
 	require.NoError(t, e)
 	defer func() {
@@ -44,12 +49,10 @@ func TestNodeServer(t *testing.T) {
 			Mount: &csi.VolumeCapability_MountVolume{FsType: "ext4"},
 		},
 	}
-	volID := "vol1"
 	stgReq := &csi.NodeStageVolumeRequest{
 		VolumeId:          volID,
 		StagingTargetPath: stagePath,
 		VolumeCapability:  volCap,
-		PublishContext:    map[string]string{keyDeviceName: "mock"},
 	}
 	_, e = svr.NodeStageVolume(ctx, stgReq)
 	assert.NoError(t, e)
