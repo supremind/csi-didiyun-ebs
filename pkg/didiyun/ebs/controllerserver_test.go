@@ -42,6 +42,13 @@ func TestControllerServer(t *testing.T) {
 	_, e = svr.ControllerPublishVolume(ctx, pubReq)
 	assert.NoError(t, e)
 
+	expandReq := &csi.ControllerExpandVolumeRequest{
+		VolumeId:      createResp.GetVolume().GetVolumeId(),
+		CapacityRange: &csi.CapacityRange{RequiredBytes: 20000},
+	}
+	_, e = svr.ControllerExpandVolume(ctx, expandReq)
+	assert.NoError(t, e)
+
 	unpubReq := &csi.ControllerUnpublishVolumeRequest{
 		VolumeId: createResp.GetVolume().GetVolumeId(),
 		NodeId:   nodeID,

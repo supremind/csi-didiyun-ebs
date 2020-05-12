@@ -227,12 +227,55 @@ func (ns *nodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetC
 					},
 				},
 			},
+			{
+				Type: &csi.NodeServiceCapability_Rpc{
+					Rpc: &csi.NodeServiceCapability_RPC{
+						Type: csi.NodeServiceCapability_RPC_EXPAND_VOLUME,
+					},
+				},
+			},
 		},
 	}, nil
 }
 
 func (ns *nodeServer) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "")
+	if e := resizeFS(req.GetVolumePath()); e != nil {
+		return nil, status.Error(codes.Internal, e.Error())
+	}
+	klog.V(4).Infof("expanded volume %s, path: %s", req.GetVolumeId(), req.GetVolumePath())
+	return &csi.NodeExpandVolumeResponse{}, nil
+}
+
+type findmntFS struct {
+	Filesystems []struct {
+		Target  string `json:"target"`
+		Source  string `json:"source"`
+		Fstype  string `json:"fstype"`
+		Options string `json:"options"`
+	} `json:"filesystems"`
+}
+
+func resizeFS(mountPoint string) error {
+	out, e := exec.Command("findmnt", "-J", mountPoint).CombinedOutput()
+	if e != nil {
+		return e
+	}
+	var fs findmntFS
+	if e := json.Unmarshal(out, &fs); e != nil {
+		return e
+	}
+	if len(fs.Filesystems) != 1 {
+		return fmt.Errorf("invalid mount source number: %d", len(fs.Filesystems))
+	}
+
+	if fs.Filesystems[0].Fstype != "ext4" {
+		return fmt.Errorf("not supported fs type: %s", fs.Filesystems[0].Fstype)
+	}
+
+	if _, e = exec.Command("resize2fs", fs.Filesystems[0].Source).CombinedOutput(); e != nil {
+		return e
+	}
+	return nil
 }
 
 func checkDevice(mountPoint string) error {
@@ -240,14 +283,7 @@ func checkDevice(mountPoint string) error {
 	if e != nil {
 		return e
 	}
-	var fs struct {
-		Filesystems []struct {
-			Target  string `json:"target"`
-			Source  string `json:"source"`
-			Fstype  string `json:"fstype"`
-			Options string `json:"options"`
-		} `json:"filesystems"`
-	}
+	var fs findmntFS
 	if e := json.Unmarshal(out, &fs); e != nil {
 		return e
 	}

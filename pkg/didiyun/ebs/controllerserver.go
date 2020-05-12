@@ -85,6 +85,7 @@ func (cs *controllerServer) ControllerGetCapabilities(ctx context.Context, req *
 	caps := []csi.ControllerServiceCapability_RPC_Type{
 		csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
 		csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME,
+		csi.ControllerServiceCapability_RPC_EXPAND_VOLUME,
 	}
 
 	var csc []*csi.ControllerServiceCapability
@@ -121,5 +122,11 @@ func (cs *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *
 }
 
 func (cs *controllerServer) ControllerExpandVolume(ctx context.Context, req *csi.ControllerExpandVolumeRequest) (*csi.ControllerExpandVolumeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "")
+	size := (req.GetCapacityRange().GetRequiredBytes() + (1 << 30) - 1) / (1 << 30)
+	if e := cs.ebsCli.Expand(ctx, req.GetVolumeId(), size); e != nil {
+		return nil, status.Error(codes.Internal, e.Error())
+	}
+
+	klog.V(4).Infof("volume expanded: %s", req.GetVolumeId())
+	return &csi.ControllerExpandVolumeResponse{CapacityBytes: req.GetCapacityRange().GetRequiredBytes(), NodeExpansionRequired: true}, nil
 }
