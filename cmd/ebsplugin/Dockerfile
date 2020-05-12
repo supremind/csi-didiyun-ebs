@@ -10,6 +10,6 @@ COPY . ./
 RUN make build-ebsplugin
 
 FROM reg.supremind.info/hub/atom/builder/alpine-base:latest
-RUN apk add --no-cache util-linux e2fsprogs
+RUN apk add --no-cache util-linux e2fsprogs e2fsprogs-extra
 COPY --from=builder /workspace/bin/ebsplugin /ebsplugin
 ENTRYPOINT ["/ebsplugin"]
