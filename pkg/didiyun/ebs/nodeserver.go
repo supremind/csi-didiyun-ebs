@@ -153,6 +153,14 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	if e != nil {
 		return nil, status.Error(codes.Internal, e.Error())
 	}
+	var err error
+	defer func() { // detach volume in case of any error, because NodeUnstageVolume won't be called
+		if err != nil {
+			if e := ns.ebsCli.Detach(ctx, req.GetVolumeId()); e != nil {
+				klog.Errorf("volume %s, Device: %s, detach error: %s", req.GetVolumeId(), device, e)
+			}
+		}
+	}()
 
 	mnt := req.VolumeCapability.GetMount()
 	fsType := "ext4"
@@ -160,12 +168,12 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		fsType = mnt.FsType
 	}
 	diskMounter := &mount.SafeFormatAndMount{Interface: ns.mounter, Exec: mount.NewOsExec()}
-	if e := diskMounter.FormatAndMount("/dev/"+device, targetPath, fsType, mnt.MountFlags); e != nil {
-		klog.Errorf("volume %s, Device: %s, FormatAndMount error: %s", req.VolumeId, device, e)
-		return nil, status.Error(codes.Internal, e.Error())
+	if err = diskMounter.FormatAndMount("/dev/"+device, targetPath, fsType, mnt.MountFlags); err != nil {
+		klog.Errorf("volume %s, Device: %s, FormatAndMount error: %s", req.GetVolumeId(), device, err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	klog.V(4).Infof("staged volume %s, target %s, device: %s", req.VolumeId, targetPath, device)
+	klog.V(4).Infof("staged volume %s, target %s, device: %s", req.GetVolumeId(), targetPath, device)
 	return &csi.NodeStageVolumeResponse{}, nil
 }
 
