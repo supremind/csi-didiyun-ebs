@@ -7,7 +7,7 @@ COPY go.sum go.sum
 RUN --mount=type=secret,id=netrc,dst=/root/.netrc go mod download
 
 COPY . ./
-RUN make build-ebsplugin
+RUN make build
 
 FROM reg.supremind.info/hub/ci/alpine-base:latest
 RUN apk add --no-cache util-linux e2fsprogs e2fsprogs-extra
