@@ -38,4 +38,4 @@ build csi:
       - --registry-mirror=https://docker.mirrors.ustc.edu.cn
   script:
     - export REGISTRY_NAME=${CI_REGISTRY_IMAGE}
-    - make docker-push-ebsplugin
+    - make docker-push
