@@ -3,7 +3,7 @@ module git.supremind.info/infra/didiyun/csi-ebs
 go 1.14
 
 require (
-	git.supremind.info/infra/didiyun/didiyun-client v1.0.0
+	git.supremind.info/infra/didiyun/didiyun-client v0.1.0
 	github.com/container-storage-interface/spec v1.1.0
 	github.com/kubernetes-csi/csi-lib-utils v0.6.1 // indirect
 	github.com/kubernetes-csi/drivers v1.0.2
