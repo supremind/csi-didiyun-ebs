@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	didiyunClient "git.supremind.info/products/atom/didiyun-client/pkg"
+	didiyunClient "git.supremind.info/infra/didiyun/didiyun-client/pkg"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"k8s.io/klog"
