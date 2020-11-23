@@ -1,6 +1,6 @@
 .PHONY: build-% container-% push-% clean test
 NETRC_PATH ?= $(HOME)/.netrc
-REGISTRY_NAME ?= reg.supremind.info/products/atom/csi-plugins
+IMAGE_NAME ?= reg.supremind.info/infra/didiyun/csi-ebs
 BOLT_MOUNT_VERSION = 20200508-08723aa
 
 REV=$(shell date -u '+%Y%m%d')-$(shell git rev-parse --short HEAD)
@@ -14,16 +14,15 @@ build-%:
 test:
 	go test ./...
 
-docker-build-%:
+docker-build:
 	DOCKER_BUILDKIT=1 docker build \
-	-t $*:latest \
-	-f ./cmd/$*/Dockerfile \
+	-t ebsplugin:latest \
+	-f ./cmd/ebsplugin/Dockerfile \
 	--network host \
-	--secret id=netrc,src=$(NETRC_PATH) \
-	--build-arg BOLT_MOUNT_VERSION=$(BOLT_MOUNT_VERSION) .
+	--secret id=netrc,src=$(NETRC_PATH) .
 
-docker-push-%: docker-build-%
-	docker tag $*:latest $(IMAGE_NAME):$(REV)
+docker-push: docker-build
+	docker tag ebsplugin:latest $(IMAGE_NAME):$(REV)
 	docker push $(IMAGE_NAME):$(REV)
 
 clean:
