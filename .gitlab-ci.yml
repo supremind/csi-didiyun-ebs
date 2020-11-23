@@ -3,10 +3,11 @@ stages:
   - build
 
 variables:
-  GOPROXY: https://goproxy.cn,direct
-  GOPRIVATE: git.supremind.info
   DOCKER_HOST: tcp://localhost:2375
   DOCKER_REG: $CI_REGISTRY_IMAGE
+  DOCKER_TLS_CERTDIR: ''
+  GOPROXY: https://goproxy.sl.supremind.info,https://goproxy.cn,https://gorpoxy.io,direct
+  GOPRIVATE: git.supremind.info
 
 before_script:
   - echo -e "machine git.supremind.info\nlogin gitlab-ci-token\npassword ${CI_JOB_TOKEN}" > /root/.netrc
@@ -19,12 +20,7 @@ test csi:
       - merge_requests
     changes:
       - platform/csi/**/*
-  image: reg.supremind.info/hub/atom/builder/golang-tester:latest
-  cache:
-    policy: pull-push
-    key: go-path
-    paths:
-      - /go/
+  image: reg.supremind.info/hub/ci/golang-builder:latest
   script:
     - echo "done" # TODO: test need privilege
 
@@ -34,17 +30,12 @@ build csi:
     refs:
       - master
       - release
-  image: reg.supremind.info/hub/atom/builder/docker-runner:latest
+  image: reg.supremind.info/hub/ci/docker-runner:latest
   services:
-    - docker:18.09.7-dind
-  variables: &dindVars
-    DOCKER_DRIVER: overlay2
-  cache:
-    policy: pull-push
-    key: dind-go
-    paths:
-      - /var/lib/docker
+    - name: docker:19.03-dind
+      command:
+      - --mtu=1450
+      - --registry-mirror=https://docker.mirrors.ustc.edu.cn
   script:
     - export REGISTRY_NAME=${CI_REGISTRY_IMAGE}
     - make docker-push-ebsplugin
-    - make docker-push-datasetplugin
