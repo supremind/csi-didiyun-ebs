@@ -19,7 +19,7 @@ import (
 
 const (
 	// might be overwritten by environment variable `MAX_VOLUMES_PER_NODE`
-	defaultMaxVolumesPerNode = 10
+	defaultMaxVolumesPerNode = 5
 	maxVolumePerNodeEnvKey   = "MAX_VOLUMES_PER_NODE"
 )
 
