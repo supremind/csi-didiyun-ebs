@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	didiyunClient "git.supremind.info/infra/didiyun/didiyun-client/pkg"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	didiyunClient "github.com/supremind/didiyun-client/pkg"
 	"k8s.io/kubernetes/pkg/util/mount"
 )
 
