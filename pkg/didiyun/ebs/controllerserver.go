@@ -2,6 +2,7 @@ package ebs
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	csicommon "github.com/kubernetes-csi/drivers/pkg/csi-common"
@@ -114,6 +115,23 @@ func (cs *controllerServer) ValidateVolumeCapabilities(ctx context.Context, req 
 }
 
 func (cs *controllerServer) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
+	ebs, e := cs.ebsCli.Get(ctx, req.GetVolumeId())
+	if e != nil {
+		return nil, status.Error(codes.Internal, e.Error())
+	}
+
+	if ebs.GetDc2() != nil {
+		if ebs.GetDc2().GetName() == req.GetNodeId() {
+			klog.V(4).Infof("ebs %s (%s) already mounted to %s, do nothing", ebs.GetName(), ebs.GetEbsUuid(), req.GetNodeId())
+			return &csi.ControllerPublishVolumeResponse{}, nil
+		}
+
+		msg := fmt.Sprintf("ebs %s (%s) is still mounted to another node %s, could not be published to %s", ebs.GetName(), ebs.GetEbsUuid(), ebs.GetDc2().GetName(), req.GetNodeId())
+		klog.V(4).Info(msg)
+		return nil, status.Error(codes.FailedPrecondition, msg)
+	}
+
+	klog.V(4).Infof("ebs %s (%s) is free to be mounted", ebs.GetName(), ebs.GetEbsUuid())
 	return &csi.ControllerPublishVolumeResponse{}, nil
 }
 

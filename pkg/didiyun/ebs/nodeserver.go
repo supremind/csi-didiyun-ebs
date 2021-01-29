@@ -148,11 +148,33 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		return nil, status.Error(codes.Unimplemented, "")
 	}
 
-	// attach before mount to global
-	device, e := ns.ebsCli.Attach(ctx, req.GetVolumeId(), ns.nodeID)
+	// check or attach
+	var device string
+
+	ebs, e := ns.ebsCli.Get(ctx, req.GetVolumeId())
 	if e != nil {
 		return nil, status.Error(codes.Internal, e.Error())
 	}
+	if ebs.GetDc2() != nil {
+		if ebs.GetDc2().GetName() != ns.nodeID {
+			msg := fmt.Sprintf("ebs %s (%s) is mounted to another node %s, could not be published to %s", ebs.GetName(), ebs.GetEbsUuid(), ebs.GetDc2().GetName(), ns.nodeID)
+			klog.Errorf(msg)
+			return nil, status.Error(codes.FailedPrecondition, msg)
+		}
+
+		device = ebs.GetDeviceName()
+		klog.V(4).Infof("ebs %s (%s) is already mounted to %s as %s", ebs.GetName(), ebs.GetEbsUuid(), ns.nodeID, device)
+
+	} else {
+		// attach before mount to global
+		var e error
+		device, e = ns.ebsCli.Attach(ctx, req.GetVolumeId(), ns.nodeID)
+		if e != nil {
+			return nil, status.Error(codes.Internal, e.Error())
+		}
+		klog.V(4).Infof("ebs %s (%s) is mounted to %s as %s", ebs.GetName(), ebs.GetEbsUuid(), ns.nodeID, device)
+	}
+
 	var err error
 	defer func() { // detach volume in case of any error, because NodeUnstageVolume won't be called
 		if err != nil {
@@ -162,6 +184,7 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		}
 	}()
 
+	// mount
 	mnt := req.VolumeCapability.GetMount()
 	fsType := "ext4"
 	if mnt.FsType != "" {
