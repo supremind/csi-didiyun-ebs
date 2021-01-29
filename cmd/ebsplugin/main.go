@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"git.supremind.info/infra/didiyun/csi-ebs/pkg/didiyun/ebs"
+	"github.com/supremind/csi-didiyun-ebs/pkg/didiyun/ebs"
 	"k8s.io/klog"
 )
 

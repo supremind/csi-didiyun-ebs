@@ -1,4 +1,4 @@
-module git.supremind.info/infra/didiyun/csi-ebs
+module github.com/supremind/csi-didiyun-ebs
 
 go 1.14
 
