@@ -158,8 +158,8 @@ github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
-github.com/supremind/didiyun-client v0.2.0 h1:mB2u0drlCGPjaHaEanLwCyXKFHwfcn3pffQW7t6TNVc=
-github.com/supremind/didiyun-client v0.2.0/go.mod h1:XGaKiUS+hb+hTup9QBmYhNgii0GZzErj1i6LV8vMiQE=
+github.com/supremind/didiyun-client v0.2.1 h1:nJfDDrAlfchHM3SSHf/DRYLP1V5E1P2LxVx3S1xucAk=
+github.com/supremind/didiyun-client v0.2.1/go.mod h1:XGaKiUS+hb+hTup9QBmYhNgii0GZzErj1i6LV8vMiQE=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
