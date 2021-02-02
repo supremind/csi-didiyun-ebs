@@ -95,6 +95,9 @@ metadata:
   name: {{ include "csi-didiyun-ebs.name" . }}-resizer
 rules:
   - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
     resources: ["persistentvolumes"]
     verbs: ["get", "list", "watch", "update", "patch"]
   - apiGroups: [""]
