@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: "{{ include "csi-didiyun-ebs.name" $ }}-node-{{ .name }}"
+  name: "{{ include "csi-didiyun-ebs.name" $ }}-node-{{ required "node plugin name is missing" .name }}"
   namespace: {{ $.Release.Namespace}}
   labels:
     app.kubernetes.io/component: "node-plugin-{{ .name }}"
@@ -22,6 +22,8 @@ spec:
         app.kubernetes.io/component: "node-plugin-{{ .name }}"
         {{- include "csi-didiyun-ebs.selectorLabels" $ | nindent 8 }}
     spec:
+      priorityClassName: system-node-critical
+      restartPolicy: Always
       {{- with .affinity }}
       affinity:
         {{ toYaml . | nindent 8 }}
@@ -95,6 +97,8 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.nodeName
+        - name: MAX_VOLUMES_PER_NODE
+          value: {{ quote $.Values.config.maxVolumesPerNode }}
         - name: API_TOKEN
           valueFrom:
             secretKeyRef:

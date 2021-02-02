@@ -2,7 +2,7 @@
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: {{ .name }}
+  name: {{ required "storage class name is missing" .name }}
   labels:
     app.kubernetes.io/component: "storage-class-{{ .name }}"
     {{- include "csi-didiyun-ebs.labels" $ | nindent 4 }}

@@ -24,7 +24,7 @@ storageClasses:
 
 controller:
   replicas: 1
-  annotations: []
+  annotations: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -38,7 +38,7 @@ nodePlugins:
   region: ''
   # eg: gz02
   zone: ''
-  annotations: []
+  annotations: {}
   nodeSelector: {}
   tolerations: []
   affinity: {}

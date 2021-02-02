@@ -23,6 +23,8 @@ spec:
         app.kubernetes.io/component: controller
         {{- include "csi-didiyun-ebs.selectorLabels" . | nindent 8 }}
     spec:
+      priorityClassName: system-cluster-critical
+      restartPolicy: Always
       {{- with .Values.controller.affinity }}
       affinity:
         {{ toYaml . | nindent 8 }}
