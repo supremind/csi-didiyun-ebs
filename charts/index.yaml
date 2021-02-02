@@ -2,10 +2,10 @@ apiVersion: v1
 entries:
   csi-didiyun-ebs:
   - apiVersion: v2
-    appVersion: 0.1.0
-    created: "2021-02-02T21:02:07.7735173+08:00"
+    appVersion: 0.1.1
+    created: "2021-02-02T21:23:42.8278369+08:00"
     description: A Helm chart to use Didiyun EBS as persistent volumes in Kubernetes
-    digest: 898f95b0343357fc2d7e2e1686c1c0d8212ef777bc4fa3cbf9005585c8991b3f
+    digest: e58cbf1bab4805b548ea4626c94bf33ec0a4f9f4e558f41e9e1186c55c1f78f0
     name: csi-didiyun-ebs
     type: application
     urls:
@@ -13,7 +13,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2021-02-02T21:02:07.7726261+08:00"
+    created: "2021-02-02T21:23:42.8270501+08:00"
     description: A Helm chart to use Didiyun EBS as persistent volumes in Kubernetes
     digest: 32636e8842f23bf3ef7f088b3fd2e47ddaad1b0ec90d63e493fe265424fbb433
     name: csi-didiyun-ebs
@@ -21,4 +21,4 @@ entries:
     urls:
     - https://supremind.github.io/csi-didiyun-ebs/charts/csi-didiyun-ebs-0.1.0.tgz
     version: 0.1.0
-generated: "2021-02-02T21:02:07.7720875+08:00"
+generated: "2021-02-02T21:23:42.8265277+08:00"
