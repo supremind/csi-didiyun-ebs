@@ -14,7 +14,7 @@ jobs:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.13
+        go-version: ^1.15
       id: go
     - name: Checkout code
       uses: actions/checkout@v2
@@ -65,7 +65,7 @@ jobs:
           tag-sha: true # add git short SHA as Docker tag
 
       - name: build driver
-        id: docker_build_s3_driver
+        id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: ./
