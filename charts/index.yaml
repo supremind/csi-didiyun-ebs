@@ -9,6 +9,6 @@ entries:
     name: csi-didiyun-ebs
     type: application
     urls:
-    - http://supremind.github.io/csi-didiyun-ebs/master/csi-didiyun-ebs-0.1.0.tgz
+    - http://supremind.github.io/csi-didiyun-ebs/charts/csi-didiyun-ebs-0.1.0.tgz
     version: 0.1.0
 generated: "2021-02-02T16:21:14.4616515+08:00"
