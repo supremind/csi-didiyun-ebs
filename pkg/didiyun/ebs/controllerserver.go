@@ -59,7 +59,8 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 			AccessibleTopology: []*csi.Topology{
 				{
 					Segments: map[string]string{
-						topologyZoneKey: zone,
+						topologyRegionKey: region,
+						topologyZoneKey:   zone,
 					},
 				},
 			},

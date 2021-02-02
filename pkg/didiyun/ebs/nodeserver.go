@@ -25,6 +25,7 @@ const (
 
 type nodeServer struct {
 	nodeID            string
+	region            string
 	zone              string
 	maxVolumesPerNode int64
 	*csicommon.DefaultNodeServer
@@ -32,7 +33,7 @@ type nodeServer struct {
 	ebsCli  didiyunClient.EbsClient
 }
 
-func NewNodeServer(d *csicommon.CSIDriver, nodeID, zone string, cli didiyunClient.EbsClient) *nodeServer {
+func NewNodeServer(d *csicommon.CSIDriver, nodeID, region, zone string, cli didiyunClient.EbsClient) *nodeServer {
 	var maxVolumesPerNode int64 = defaultMaxVolumesPerNode
 	if val, e := strconv.ParseInt(os.Getenv(maxVolumePerNodeEnvKey), 10, 64); e != nil {
 		klog.V(2).Infof("parse env var %s failed: %v", maxVolumePerNodeEnvKey, e)
@@ -44,6 +45,7 @@ func NewNodeServer(d *csicommon.CSIDriver, nodeID, zone string, cli didiyunClien
 
 	return &nodeServer{
 		nodeID:            nodeID,
+		region:            region,
 		zone:              zone,
 		maxVolumesPerNode: maxVolumesPerNode,
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d),
@@ -242,7 +244,8 @@ func (ns *nodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 		MaxVolumesPerNode: ns.maxVolumesPerNode,
 		AccessibleTopology: &csi.Topology{
 			Segments: map[string]string{
-				topologyZoneKey: ns.zone,
+				topologyRegionKey: ns.region,
+				topologyZoneKey:   ns.zone,
 			},
 		},
 	}, nil

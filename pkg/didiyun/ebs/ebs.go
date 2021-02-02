@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	driverName      = "didiyun-ebs.csi.supremind.com"
-	csiVersion      = "1.0.0"
-	topologyZoneKey = "topology." + driverName + "/zone"
+	driverName        = "didiyun-ebs.csi.supremind.com"
+	csiVersion        = "1.0.0"
+	topologyZoneKey   = "topology." + driverName + "/zone"
+	topologyRegionKey = "topology." + driverName + "/region"
 )
 
 type ebs struct {
@@ -45,7 +46,7 @@ func NewDriver(cfg *DriverConfig) (*ebs, error) {
 	driver.AddVolumeCapabilityAccessModes([]csi.VolumeCapability_AccessMode_Mode{csi.VolumeCapability_AccessMode_SINGLE_NODE_WRITER})
 	return &ebs{
 		idServer:         NewIdentityServer(driver),
-		nodeServer:       NewNodeServer(driver, cfg.NodeID, cfg.ZoneID, cli.Ebs()),
+		nodeServer:       NewNodeServer(driver, cfg.NodeID, cfg.RegionID, cfg.ZoneID, cli.Ebs()),
 		controllerServer: NewControllerServer(driver, cli.Ebs()),
 		endpoint:         cfg.Endpoint,
 	}, nil
