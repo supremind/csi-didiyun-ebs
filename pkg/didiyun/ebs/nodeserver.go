@@ -244,8 +244,7 @@ func (ns *nodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 		MaxVolumesPerNode: ns.maxVolumesPerNode,
 		AccessibleTopology: &csi.Topology{
 			Segments: map[string]string{
-				topologyRegionKey: ns.region,
-				topologyZoneKey:   ns.zone,
+				topologyZoneKey: ns.zone,
 			},
 		},
 	}, nil
