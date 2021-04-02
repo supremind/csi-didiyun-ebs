@@ -6,6 +6,12 @@
 
 Unofficial plugin to use Didiyun EBS as a PVC in Kubernetes.
 
+## Known Limitations
+
+- [ ] Node name in Kubernetes must be the same of the name in the didiyun console
+- [ ] Nodes supports mouting EBS must be labelled with proper labels
+- [ ] [CSIDriver Object](https://kubernetes-csi.github.io/docs/csi-driver-object.html) is not supported (yet)
+
 ## Deploy
 
 ```
