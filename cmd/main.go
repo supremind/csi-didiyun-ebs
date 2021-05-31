@@ -13,6 +13,7 @@ import (
 var (
 	endpoint = flag.String("endpoint", "unix:///csi/csi.sock", "CSI endpoint")
 	nodeID   = flag.String("nodeid", "", "node id")
+	nodeIP   = flag.String("nodeip", "", "node ip")
 	regionID = flag.String("regionid", "", "region id")
 	zoneID   = flag.String("zoneid", "", "zone id")
 	token    = flag.String("token", "", "ebs api token")
@@ -26,6 +27,7 @@ func main() {
 
 	cfg := &ebs.DriverConfig{
 		NodeID:   *nodeID,
+		NodeIP:   *nodeIP,
 		RegionID: *regionID,
 		ZoneID:   *zoneID,
 		Token:    *token,
