@@ -25,6 +25,7 @@ const (
 
 type nodeServer struct {
 	nodeID            string
+	nodeIP            string
 	region            string
 	zone              string
 	maxVolumesPerNode int64
@@ -33,7 +34,7 @@ type nodeServer struct {
 	ebsCli  didiyunClient.EbsClient
 }
 
-func NewNodeServer(d *csicommon.CSIDriver, nodeID, region, zone string, cli didiyunClient.EbsClient) *nodeServer {
+func NewNodeServer(d *csicommon.CSIDriver, nodeID, nodeIP, region, zone string, cli didiyunClient.EbsClient) *nodeServer {
 	var maxVolumesPerNode int64 = defaultMaxVolumesPerNode
 	if val, e := strconv.ParseInt(os.Getenv(maxVolumePerNodeEnvKey), 10, 64); e != nil {
 		klog.V(2).Infof("parse env var %s failed: %v", maxVolumePerNodeEnvKey, e)
@@ -45,6 +46,7 @@ func NewNodeServer(d *csicommon.CSIDriver, nodeID, region, zone string, cli didi
 
 	return &nodeServer{
 		nodeID:            nodeID,
+		nodeIP:            nodeIP,
 		region:            region,
 		zone:              zone,
 		maxVolumesPerNode: maxVolumesPerNode,
@@ -158,7 +160,7 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		return nil, status.Error(codes.Internal, e.Error())
 	}
 	if ebs.GetDc2() != nil {
-		if ebs.GetDc2().GetName() != ns.nodeID {
+		if ebs.GetDc2().GetIp() != ns.nodeIP {
 			msg := fmt.Sprintf("ebs %s (%s) is mounted to another node %s, could not be published to %s", ebs.GetName(), ebs.GetEbsUuid(), ebs.GetDc2().GetName(), ns.nodeID)
 			klog.Errorf(msg)
 			return nil, status.Error(codes.FailedPrecondition, msg)
@@ -170,7 +172,7 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	} else {
 		// attach before mount to global
 		var e error
-		device, e = ns.ebsCli.Attach(ctx, req.GetVolumeId(), ns.nodeID)
+		device, e = ns.ebsCli.Attach(ctx, req.GetVolumeId(), ns.nodeIP)
 		if e != nil {
 			return nil, status.Error(codes.Internal, e.Error())
 		}

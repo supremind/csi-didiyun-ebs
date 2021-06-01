@@ -26,6 +26,7 @@ type ebs struct {
 
 type DriverConfig struct {
 	NodeID   string
+	NodeIP   string
 	RegionID string
 	ZoneID   string
 	Endpoint string
@@ -46,7 +47,7 @@ func NewDriver(cfg *DriverConfig) (*ebs, error) {
 	driver.AddVolumeCapabilityAccessModes([]csi.VolumeCapability_AccessMode_Mode{csi.VolumeCapability_AccessMode_SINGLE_NODE_WRITER})
 	return &ebs{
 		idServer:         NewIdentityServer(driver),
-		nodeServer:       NewNodeServer(driver, cfg.NodeID, cfg.RegionID, cfg.ZoneID, cli.Ebs()),
+		nodeServer:       NewNodeServer(driver, cfg.NodeID, cfg.NodeIP, cfg.RegionID, cfg.ZoneID, cli.Ebs()),
 		controllerServer: NewControllerServer(driver, cli.Ebs()),
 		endpoint:         cfg.Endpoint,
 	}, nil
