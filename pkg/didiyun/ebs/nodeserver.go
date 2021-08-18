@@ -58,12 +58,17 @@ func NewNodeServer(d *csicommon.CSIDriver, nodeID, nodeIP, region, zone string, 
 
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	sourcePath := req.StagingTargetPath
+	targetPath := req.GetTargetPath()
 	isBlock := req.GetVolumeCapability().GetBlock() != nil
 	if isBlock {
-		// TODO: handle block volume
+
+		if e := ns.mounter.Mount(sourcePath, targetPath, "ext4", []string{"bind"}); e != nil {
+			return nil, status.Error(codes.Internal, e.Error())
+		}
+		klog.V(4).Infof("mounted block volume %s (%s -> %s) with flags %v and fsType %s", req.VolumeId, sourcePath, targetPath, []string{"bind"}, "ext4")
 		return nil, status.Error(codes.Unimplemented, "")
 	}
-	targetPath := req.GetTargetPath()
+
 	if req.VolumeId == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID cannot be empty")
 	}
@@ -146,12 +151,6 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		return &csi.NodeStageVolumeResponse{}, nil
 	}
 
-	isBlock := req.GetVolumeCapability().GetBlock() != nil
-	if isBlock {
-		// TODO: mount block device
-		return nil, status.Error(codes.Unimplemented, "")
-	}
-
 	// check or attach
 	var device string
 
@@ -177,6 +176,17 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 			return nil, status.Error(codes.Internal, e.Error())
 		}
 		klog.V(4).Infof("ebs %s (%s) is mounted to %s as %s", ebs.GetName(), ebs.GetEbsUuid(), ns.nodeID, device)
+	}
+
+	isBlock := req.GetVolumeCapability().GetBlock() != nil
+	if isBlock {
+		diskMounter := &mount.SafeFormatAndMount{Interface: ns.mounter, Exec: mount.NewOsExec()}
+		if err := diskMounter.FormatAndMount("/dev/"+device, targetPath, "ext4", []string{"bind"}); err != nil {
+			klog.Errorf("volume %s, Device: %s, FormatAndMount error: %s", req.GetVolumeId(), device, err)
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		klog.V(4).Infof("block volume %s, target %s, device: %s", req.GetVolumeId(), targetPath, device)
+		return &csi.NodeStageVolumeResponse{}, nil
 	}
 
 	var err error
