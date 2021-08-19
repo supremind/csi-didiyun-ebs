@@ -18,11 +18,13 @@ import (
 func TestNodeServer(t *testing.T) {
 	c, _ := didiyunClient.NewMock()
 	nodeID := "test-node"
+	nodeIP := "10.1.1.2"
 	driver := csicommon.NewCSIDriver(driverName, csiVersion, nodeID)
 	require.NotNil(t, driver)
 
 	svr := &nodeServer{
 		nodeID:            nodeID,
+		nodeIP:            nodeIP,
 		zone:              "zone1",
 		mounter:           &mount.FakeMounter{},
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(driver),

@@ -25,6 +25,7 @@ const (
 
 type nodeServer struct {
 	nodeID            string
+	nodeIP            string
 	region            string
 	zone              string
 	maxVolumesPerNode int64
@@ -33,7 +34,7 @@ type nodeServer struct {
 	ebsCli  didiyunClient.EbsClient
 }
 
-func NewNodeServer(d *csicommon.CSIDriver, nodeID, region, zone string, cli didiyunClient.EbsClient) *nodeServer {
+func NewNodeServer(d *csicommon.CSIDriver, nodeID, nodeIP, region, zone string, cli didiyunClient.EbsClient) *nodeServer {
 	var maxVolumesPerNode int64 = defaultMaxVolumesPerNode
 	if val, e := strconv.ParseInt(os.Getenv(maxVolumePerNodeEnvKey), 10, 64); e != nil {
 		klog.V(2).Infof("parse env var %s failed: %v", maxVolumePerNodeEnvKey, e)
@@ -45,6 +46,7 @@ func NewNodeServer(d *csicommon.CSIDriver, nodeID, region, zone string, cli didi
 
 	return &nodeServer{
 		nodeID:            nodeID,
+		nodeIP:            nodeIP,
 		region:            region,
 		zone:              zone,
 		maxVolumesPerNode: maxVolumesPerNode,
@@ -56,12 +58,17 @@ func NewNodeServer(d *csicommon.CSIDriver, nodeID, region, zone string, cli didi
 
 func (ns *nodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	sourcePath := req.StagingTargetPath
+	targetPath := req.GetTargetPath()
 	isBlock := req.GetVolumeCapability().GetBlock() != nil
 	if isBlock {
-		// TODO: handle block volume
+
+		if e := ns.mounter.Mount(sourcePath, targetPath, "ext4", []string{"bind"}); e != nil {
+			return nil, status.Error(codes.Internal, e.Error())
+		}
+		klog.V(4).Infof("mounted block volume %s (%s -> %s) with flags %v and fsType %s", req.VolumeId, sourcePath, targetPath, []string{"bind"}, "ext4")
 		return nil, status.Error(codes.Unimplemented, "")
 	}
-	targetPath := req.GetTargetPath()
+
 	if req.VolumeId == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID cannot be empty")
 	}
@@ -144,12 +151,6 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		return &csi.NodeStageVolumeResponse{}, nil
 	}
 
-	isBlock := req.GetVolumeCapability().GetBlock() != nil
-	if isBlock {
-		// TODO: mount block device
-		return nil, status.Error(codes.Unimplemented, "")
-	}
-
 	// check or attach
 	var device string
 
@@ -158,7 +159,7 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		return nil, status.Error(codes.Internal, e.Error())
 	}
 	if ebs.GetDc2() != nil {
-		if ebs.GetDc2().GetName() != ns.nodeID {
+		if ebs.GetDc2().GetIp() != ns.nodeIP {
 			msg := fmt.Sprintf("ebs %s (%s) is mounted to another node %s, could not be published to %s", ebs.GetName(), ebs.GetEbsUuid(), ebs.GetDc2().GetName(), ns.nodeID)
 			klog.Errorf(msg)
 			return nil, status.Error(codes.FailedPrecondition, msg)
@@ -170,11 +171,22 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	} else {
 		// attach before mount to global
 		var e error
-		device, e = ns.ebsCli.Attach(ctx, req.GetVolumeId(), ns.nodeID)
+		device, e = ns.ebsCli.Attach(ctx, req.GetVolumeId(), ns.nodeIP)
 		if e != nil {
 			return nil, status.Error(codes.Internal, e.Error())
 		}
 		klog.V(4).Infof("ebs %s (%s) is mounted to %s as %s", ebs.GetName(), ebs.GetEbsUuid(), ns.nodeID, device)
+	}
+
+	isBlock := req.GetVolumeCapability().GetBlock() != nil
+	if isBlock {
+		diskMounter := &mount.SafeFormatAndMount{Interface: ns.mounter, Exec: mount.NewOsExec()}
+		if err := diskMounter.FormatAndMount("/dev/"+device, targetPath, "ext4", []string{"bind"}); err != nil {
+			klog.Errorf("volume %s, Device: %s, FormatAndMount error: %s", req.GetVolumeId(), device, err)
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		klog.V(4).Infof("block volume %s, target %s, device: %s", req.GetVolumeId(), targetPath, device)
+		return &csi.NodeStageVolumeResponse{}, nil
 	}
 
 	var err error
