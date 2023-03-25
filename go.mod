@@ -8,7 +8,7 @@ require (
 	github.com/kubernetes-csi/drivers v1.0.2
 	github.com/stretchr/testify v1.4.0
 	github.com/supremind/didiyun-client v0.2.1
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/net v0.7.0
 	google.golang.org/grpc v1.29.1
 	k8s.io/apimachinery v0.18.1 // indirect
 	k8s.io/klog v1.0.0
